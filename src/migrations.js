@@ -1,3 +1,5 @@
+import { DEFAULT_EXERCISE_LIBRARY } from './store/appStore.js'
+
 const MIGRATION_KEY  = 'maren_migration_v2'
 const MIGRATION_KEY3 = 'maren_migration_v3'
 const MIGRATION_KEY4 = 'maren_migration_v4'
@@ -19,6 +21,7 @@ const MIGRATION_KEY19 = 'maren_migration_v19'
 const MIGRATION_KEY20 = 'maren_migration_v20'
 const MIGRATION_KEY21 = 'maren_migration_v21'
 const MIGRATION_KEY22 = 'maren_migration_v22'
+const MIGRATION_KEY23 = 'maren_migration_v23'
 
 export function runMigrations() {
   runV2()
@@ -42,6 +45,7 @@ export function runMigrations() {
   runV20()
   runV21()
   runV22()
+  runV23()
 }
 
 function runV2() {
@@ -1189,4 +1193,48 @@ function runV22() {
   } catch (e) { /* ignore */ }
 
   localStorage.setItem(MIGRATION_KEY22, '1')
+}
+
+function runV23() {
+  if (localStorage.getItem(MIGRATION_KEY23)) return
+
+  // V22 had a bug: if the phone never explicitly saved the exercise library,
+  // it read an empty array and wrote only [Treadmill]. This migration restores
+  // the full library from DEFAULT_EXERCISE_LIBRARY and re-applies V22's changes.
+  const TIME_EXERCISES = ['Yoga', 'Foam Rolling', 'Band Stretching', 'Splits Stretching']
+
+  try {
+    const raw = localStorage.getItem('maren_exercise_library')
+    const lib = raw ? JSON.parse(raw) : []
+
+    // If library looks wrong (fewer than 20 exercises), rebuild from the full default
+    const baseLib = lib.length >= 20 ? lib : [...DEFAULT_EXERCISE_LIBRARY]
+
+    // Apply time tracking to the relevant exercises
+    let updated = baseLib.map(ex =>
+      TIME_EXERCISES.includes(ex.name) ? { ...ex, trackingType: 'time' } : ex
+    )
+
+    // Add Treadmill if not already present
+    if (!updated.some(ex => ex.name === 'Treadmill')) {
+      updated = [...updated, {
+        id: 'lib_treadmill_01',
+        name: 'Treadmill',
+        muscleGroup: 'Full Body',
+        note: '5kmh, 8%',
+        trackingType: 'time',
+        custom: false,
+      }]
+    }
+
+    // Preserve any custom exercises from the broken library that aren't already included
+    if (lib.length > 0 && lib.length < 20) {
+      const extras = lib.filter(ex => ex.custom && !updated.some(u => u.name === ex.name))
+      updated = [...updated, ...extras]
+    }
+
+    localStorage.setItem('maren_exercise_library', JSON.stringify(updated))
+  } catch (e) { /* ignore */ }
+
+  localStorage.setItem(MIGRATION_KEY23, '1')
 }

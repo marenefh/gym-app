@@ -16,6 +16,7 @@ const MIGRATION_KEY16 = 'maren_migration_v16'
 const MIGRATION_KEY17 = 'maren_migration_v17'
 const MIGRATION_KEY18 = 'maren_migration_v18'
 const MIGRATION_KEY19 = 'maren_migration_v19'
+const MIGRATION_KEY20 = 'maren_migration_v20'
 
 export function runMigrations() {
   runV2()
@@ -36,6 +37,7 @@ export function runMigrations() {
   runV17()
   runV18()
   runV19()
+  runV20()
 }
 
 function runV2() {
@@ -1043,4 +1045,57 @@ function runV19() {
   }
 
   localStorage.setItem(MIGRATION_KEY19, '1')
+}
+
+function runV20() {
+  if (localStorage.getItem(MIGRATION_KEY20)) return
+
+  // ── 1. Add Pull session from 2026-05-25 ─────────────────────────────────────
+  const s = (done, reps, weight) => ({ reps, weight, done })
+
+  const NEW_SESSION = {
+    id: '2026-05-25-pull', date: '2026-05-25',
+    routineId: 'pull', routineName: 'Pull', saved: true,
+    exercises: [
+      { exerciseId:'pu-wu',  name:'Warm-Up',      muscleGroup:'Full Body',  sets:[s(true,1,0)]                                        },
+      { exerciseId:'pu-lp',  name:'Lat Pulldown', muscleGroup:'Back',       sets:[s(true,10,29),s(true,10,29),s(true,10,29)]          },
+      { exerciseId:'pu-sr',  name:'Seated Row',   muscleGroup:'Back',       sets:[s(true,10,18),s(true,10,18),s(true,10,18)]          },
+      { exerciseId:'pu-fp',  name:'Face Pull',    muscleGroup:'Shoulders',  sets:[s(true,10,18),s(true,10,18),s(true,10,18)]          },
+      { exerciseId:'pu-bc',  name:'Bicep Curl',   muscleGroup:'Biceps',     sets:[s(true,10,4),s(true,10,4)]                          },
+      { exerciseId:'pu-sf',  name:'Suitcase Fly', muscleGroup:'Back',       sets:[s(true,10,3),s(true,10,3),s(true,10,3)]             },
+      { exerciseId:'pu-ac',  name:'Ab Cruncher',  muscleGroup:'Core',       sets:[s(true,10,29),s(true,10,29),s(true,10,29)]          },
+      { exerciseId:'pu-fin', name:'Cool-Down',    muscleGroup:'Full Body',  sets:[s(true,1,0)]                                        },
+    ],
+  }
+
+  try {
+    const logRaw = localStorage.getItem('maren_workout_log')
+    const log = logRaw ? JSON.parse(logRaw) : []
+    const existingDates = new Set(log.map(l => l.date))
+    if (!existingDates.has('2026-05-25')) {
+      const merged = [...log, NEW_SESSION].sort((a, b) => a.date.localeCompare(b.date))
+      localStorage.setItem('maren_workout_log', JSON.stringify(merged))
+    }
+  } catch (e) { /* ignore */ }
+
+  // ── 2. Update Pull routine: Suitcase Fly 2 sets → 3 sets ────────────────────
+  try {
+    const routinesRaw = localStorage.getItem('maren_workout_routines')
+    if (routinesRaw) {
+      const routines = JSON.parse(routinesRaw)
+      const updated = routines.map(r => {
+        if (r.id !== 'pull') return r
+        return {
+          ...r,
+          exercises: r.exercises.map(ex => {
+            if (ex.name !== 'Suitcase Fly') return ex
+            return { ...ex, sets: [{reps:10,weight:3},{reps:10,weight:3},{reps:10,weight:3}] }
+          }),
+        }
+      })
+      localStorage.setItem('maren_workout_routines', JSON.stringify(updated))
+    }
+  } catch (e) { /* ignore */ }
+
+  localStorage.setItem(MIGRATION_KEY20, '1')
 }

@@ -116,7 +116,7 @@ export const DEFAULT_WORKOUT_ROUTINES = [
       { id:'pu-sr',  name:'Seated Row',     muscleGroup:'Back',       sets:[{reps:10,weight:18},{reps:10,weight:18},{reps:10,weight:18}]      },
       { id:'pu-fp',  name:'Face Pull',      muscleGroup:'Shoulders',  sets:[{reps:10,weight:18},{reps:10,weight:18},{reps:10,weight:18}]      },
       { id:'pu-bc',  name:'Bicep Curl',     muscleGroup:'Biceps',     sets:[{reps:10,weight:4},{reps:10,weight:4}]                           },
-      { id:'pu-sf',  name:'Suitcase Fly',   muscleGroup:'Back',       sets:[{reps:10,weight:3},{reps:10,weight:3}]                           },
+      { id:'pu-sf',  name:'Suitcase Fly',   muscleGroup:'Back',       sets:[{reps:10,weight:3},{reps:10,weight:3},{reps:10,weight:3}]      },
       { id:'pu-ac',  name:'Ab Cruncher',    muscleGroup:'Core',       sets:[{reps:10,weight:29},{reps:10,weight:29},{reps:10,weight:29}]      },
       { id:'pu-fin', name:'Cool-Down',      muscleGroup:'Full Body',  sets:[{reps:1,weight:0}]                                               },
     ]

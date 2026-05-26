@@ -30,7 +30,8 @@
       "Bash(PATH=/Users/marenholden/node-install/node-v22.14.0-darwin-arm64/bin:__TRACKED_VAR__ npm run build)",
       "Bash(sed -i '' \"s/name:          'Maren',/name:          'Pierre',/\" /Users/marenholden/Desktop/pierre-app/src/store/appStore.js && grep -n \"name:.*Pierre\\\\|name:.*Maren\" /Users/marenholden/Desktop/pierre-app/src/store/appStore.js)",
       "Bash(PATH=/Users/marenholden/node-install/node-v22.14.0-darwin-arm64/bin:__TRACKED_VAR__ npm install)",
-      "Bash(git -C /Users/marenholden/Desktop/maren-app status)"
+      "Bash(git -C /Users/marenholden/Desktop/maren-app status)",
+      "Bash(git remote *)"
     ]
   }
 }

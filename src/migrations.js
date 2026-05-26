@@ -17,6 +17,7 @@ const MIGRATION_KEY17 = 'maren_migration_v17'
 const MIGRATION_KEY18 = 'maren_migration_v18'
 const MIGRATION_KEY19 = 'maren_migration_v19'
 const MIGRATION_KEY20 = 'maren_migration_v20'
+const MIGRATION_KEY21 = 'maren_migration_v21'
 
 export function runMigrations() {
   runV2()
@@ -38,6 +39,7 @@ export function runMigrations() {
   runV18()
   runV19()
   runV20()
+  runV21()
 }
 
 function runV2() {
@@ -1098,4 +1100,18 @@ function runV20() {
   } catch (e) { /* ignore */ }
 
   localStorage.setItem(MIGRATION_KEY20, '1')
+}
+
+function runV21() {
+  if (localStorage.getItem(MIGRATION_KEY21)) return
+  // Add trackingType: 'sets' to any existing library exercises that don't have it
+  try {
+    const raw = localStorage.getItem('maren_exercise_library')
+    if (raw) {
+      const lib = JSON.parse(raw)
+      const updated = lib.map(ex => ex.trackingType ? ex : { ...ex, trackingType: 'sets' })
+      localStorage.setItem('maren_exercise_library', JSON.stringify(updated))
+    }
+  } catch (e) { /* ignore */ }
+  localStorage.setItem(MIGRATION_KEY21, '1')
 }

@@ -18,6 +18,7 @@ const MIGRATION_KEY18 = 'maren_migration_v18'
 const MIGRATION_KEY19 = 'maren_migration_v19'
 const MIGRATION_KEY20 = 'maren_migration_v20'
 const MIGRATION_KEY21 = 'maren_migration_v21'
+const MIGRATION_KEY22 = 'maren_migration_v22'
 
 export function runMigrations() {
   runV2()
@@ -40,6 +41,7 @@ export function runMigrations() {
   runV19()
   runV20()
   runV21()
+  runV22()
 }
 
 function runV2() {
@@ -1114,4 +1116,77 @@ function runV21() {
     }
   } catch (e) { /* ignore */ }
   localStorage.setItem(MIGRATION_KEY21, '1')
+}
+
+function runV22() {
+  if (localStorage.getItem(MIGRATION_KEY22)) return
+
+  const TIME_EXERCISES = ['Yoga', 'Foam Rolling', 'Band Stretching', 'Splits Stretching']
+
+  // ── 1. Update exercise library ───────────────────────────────────────────────
+  try {
+    const raw = localStorage.getItem('maren_exercise_library')
+    const lib = raw ? JSON.parse(raw) : []
+
+    // Change TIME_EXERCISES to trackingType: 'time'
+    let updated = lib.map(ex =>
+      TIME_EXERCISES.includes(ex.name) ? { ...ex, trackingType: 'time' } : ex
+    )
+
+    // Add Treadmill if not already present
+    if (!updated.some(ex => ex.name === 'Treadmill')) {
+      updated = [...updated, {
+        id: 'lib_treadmill_01',
+        name: 'Treadmill',
+        muscleGroup: 'Full Body',
+        note: '5kmh, 8%',
+        trackingType: 'time',
+        custom: false,
+      }]
+    }
+
+    localStorage.setItem('maren_exercise_library', JSON.stringify(updated))
+  } catch (e) { /* ignore */ }
+
+  // ── 2. Update Sunday Restorative routine ────────────────────────────────────
+  try {
+    const raw = localStorage.getItem('maren_workout_routines')
+    if (raw) {
+      const routines = JSON.parse(raw)
+      const TIME_MINUTES = { Yoga: 20, 'Foam Rolling': 5, 'Band Stretching': 5, 'Splits Stretching': 5 }
+
+      const updated = routines.map(r => {
+        if (r.name.toLowerCase() !== 'sunday restorative') return r
+
+        // Update existing time exercises
+        const updatedExercises = r.exercises.map(ex => {
+          const mins = TIME_MINUTES[ex.name]
+          if (mins !== undefined) {
+            return { ...ex, trackingType: 'time', sets: [{ minutes: mins, seconds: 0 }] }
+          }
+          return ex
+        })
+
+        // Add Treadmill at top if not already there
+        const hasTreadmill = updatedExercises.some(ex => ex.name === 'Treadmill')
+        const treadmill = {
+          id: 'treadmill_restorative',
+          name: 'Treadmill',
+          muscleGroup: 'Full Body',
+          note: '5kmh, 8%',
+          trackingType: 'time',
+          sets: [{ minutes: 25, seconds: 0 }],
+        }
+
+        return {
+          ...r,
+          exercises: hasTreadmill ? updatedExercises : [treadmill, ...updatedExercises],
+        }
+      })
+
+      localStorage.setItem('maren_workout_routines', JSON.stringify(updated))
+    }
+  } catch (e) { /* ignore */ }
+
+  localStorage.setItem(MIGRATION_KEY22, '1')
 }

@@ -22,11 +22,13 @@ export default function ExerciseLibraryView({ onBack }) {
 
   const query = search.trim().toLowerCase()
 
-  const visible = library.filter(ex => {
-    const matchesGroup = filterGroup === 'All' || ex.muscleGroup === filterGroup
-    const matchesSearch = !query || ex.name.toLowerCase().includes(query)
-    return matchesGroup && matchesSearch
-  })
+  const visible = library
+    .filter(ex => {
+      const matchesGroup = filterGroup === 'All' || ex.muscleGroup === filterGroup
+      const matchesSearch = !query || ex.name.toLowerCase().includes(query)
+      return matchesGroup && matchesSearch
+    })
+    .sort((a, b) => a.name.localeCompare(b.name))
 
   // Group them when not searching/filtering
   const showFlat = query.length > 0

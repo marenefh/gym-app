@@ -22,6 +22,7 @@ const MIGRATION_KEY20 = 'maren_migration_v20'
 const MIGRATION_KEY21 = 'maren_migration_v21'
 const MIGRATION_KEY22 = 'maren_migration_v22'
 const MIGRATION_KEY23 = 'maren_migration_v23'
+const MIGRATION_KEY24 = 'maren_migration_v24'
 
 export function runMigrations() {
   runV2()
@@ -46,6 +47,7 @@ export function runMigrations() {
   runV21()
   runV22()
   runV23()
+  runV24()
 }
 
 function runV2() {
@@ -1237,4 +1239,28 @@ function runV23() {
   } catch (e) { /* ignore */ }
 
   localStorage.setItem(MIGRATION_KEY23, '1')
+}
+
+function runV24() {
+  if (localStorage.getItem(MIGRATION_KEY24)) return
+
+  // Pre-load 17 static photos into the photo library
+  try {
+    const base = import.meta.env.BASE_URL  // '/gym-app/' in production
+    const raw = localStorage.getItem('maren_photos')
+    const existing = raw ? JSON.parse(raw) : []
+
+    // Only add photos that aren't already pre-loaded
+    const preloadIds = new Set(existing.map(p => p.id))
+    const newPhotos = Array.from({ length: 17 }, (_, i) => ({
+      id: `preload_photo_${i + 1}`,
+      dataUrl: `${base}photos/${i + 1}.jpg`,
+    })).filter(p => !preloadIds.has(p.id))
+
+    if (newPhotos.length > 0) {
+      localStorage.setItem('maren_photos', JSON.stringify([...newPhotos, ...existing]))
+    }
+  } catch (e) { /* ignore */ }
+
+  localStorage.setItem(MIGRATION_KEY24, '1')
 }

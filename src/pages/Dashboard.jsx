@@ -24,6 +24,8 @@ const NEW_QUOTES = [
   { id: uid(), type: 'text', text: 'The same power that rose Christ from the dead, is living inside you.', author: 'Romans 8:11' },
   { id: uid(), type: 'text', text: 'Worrying is worshiping the problem. Let it go and worship Him instead.', author: '' },
   { id: uid(), type: 'text', text: 'Your future is shaped by the habits you repeat, not the goals you set.', author: '' },
+  { id: uid(), type: 'text', text: 'The bad news is that time is flying, the good news is that you\'re the pilot.', author: '' },
+  { id: uid(), type: 'text', text: 'Winners forget they\'re in a race, they just love to run.', author: '' },
 ]
 
 function getGreeting(name) {
@@ -45,10 +47,21 @@ export default function Dashboard({ onStartWorkout }) {
   const [quoteVersion, setQuoteVersion] = useLocalStorage('maren_quote_version', '0')
 
   useEffect(() => {
-    if (quoteVersion !== '3') {
+    if (quoteVersion !== '4') {
       setQuotes(NEW_QUOTES)
       setQuoteIdx(0)
-      setQuoteVersion('3')
+      setQuoteVersion('4')
+    }
+  }, []) // eslint-disable-line
+
+  // ── Shuffle on every app open (once per session) ─────────────────────────────
+  useEffect(() => {
+    if (!sessionStorage.getItem('maren_shuffled_v1')) {
+      const qLen = quotes.length || NEW_QUOTES.length
+      const pLen = photos.length
+      if (qLen > 1) setQuoteIdx(Math.floor(Math.random() * qLen))
+      if (pLen > 1) setPhotoIdx(Math.floor(Math.random() * pLen))
+      sessionStorage.setItem('maren_shuffled_v1', '1')
     }
   }, []) // eslint-disable-line
 

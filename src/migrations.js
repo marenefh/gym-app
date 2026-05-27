@@ -23,6 +23,7 @@ const MIGRATION_KEY21 = 'maren_migration_v21'
 const MIGRATION_KEY22 = 'maren_migration_v22'
 const MIGRATION_KEY23 = 'maren_migration_v23'
 const MIGRATION_KEY24 = 'maren_migration_v24'
+const MIGRATION_KEY25 = 'maren_migration_v25'
 
 export function runMigrations() {
   runV2()
@@ -48,6 +49,7 @@ export function runMigrations() {
   runV22()
   runV23()
   runV24()
+  runV25()
 }
 
 function runV2() {
@@ -1263,4 +1265,21 @@ function runV24() {
   } catch (e) { /* ignore */ }
 
   localStorage.setItem(MIGRATION_KEY24, '1')
+}
+
+function runV25() {
+  if (localStorage.getItem(MIGRATION_KEY25)) return
+  // Change Plank, Side Plank, Wall Sit to trackingType: 'time'
+  const TIME_NAMES = ['Plank', 'Side Plank', 'Wall Sit']
+  try {
+    const raw = localStorage.getItem('maren_exercise_library')
+    if (raw) {
+      const lib = JSON.parse(raw)
+      const updated = lib.map(ex =>
+        TIME_NAMES.includes(ex.name) ? { ...ex, trackingType: 'time' } : ex
+      )
+      localStorage.setItem('maren_exercise_library', JSON.stringify(updated))
+    }
+  } catch (e) { /* ignore */ }
+  localStorage.setItem(MIGRATION_KEY25, '1')
 }

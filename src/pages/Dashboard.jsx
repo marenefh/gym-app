@@ -8,6 +8,24 @@ import ConfirmModal from '../components/ConfirmModal'
 
 function uid() { return Math.random().toString(36).slice(2) }
 
+// Compress an image dataUrl to fit within maxWidth, at the given JPEG quality.
+// Keeps photos well under localStorage limits (~150-250KB vs 4-8MB raw).
+function compressImage(dataUrl, maxWidth = 1200, quality = 0.78) {
+  return new Promise((resolve) => {
+    const img = new Image()
+    img.onload = () => {
+      const scale = Math.min(1, maxWidth / img.width)
+      const canvas = document.createElement('canvas')
+      canvas.width  = Math.round(img.width  * scale)
+      canvas.height = Math.round(img.height * scale)
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height)
+      resolve(canvas.toDataURL('image/jpeg', quality))
+    }
+    img.onerror = () => resolve(dataUrl) // fallback: use original if anything goes wrong
+    img.src = dataUrl
+  })
+}
+
 const NEW_QUOTES = [
   { id: uid(), type: 'text', text: 'Stick to your plan, not your mood.', author: '' },
   { id: uid(), type: 'text', text: 'Instead of seeing it as work, realise it is play.', author: '' },
@@ -162,12 +180,14 @@ export default function Dashboard({ onStartWorkout }) {
     const file = e.target.files?.[0]
     if (!file) return
     const reader = new FileReader()
-    reader.onload = (ev) => setDraftPhoto(d => ({ ...d, dataUrl: ev.target.result }))
+    reader.onload = async (ev) => {
+      const compressed = await compressImage(ev.target.result)
+      setDraftPhoto(d => ({ ...d, dataUrl: compressed }))
+    }
     reader.readAsDataURL(file)
   }
 
-  const dayName = format(today, 'EEEE')
-  const dateStr = format(today, 'd MMMM yyyy')
+  const dateStr = format(today, 'EEE, MMM d')
 
   return (
     <div className="h-full overflow-y-auto tab-content bg-cream pb-safe">
@@ -175,7 +195,6 @@ export default function Dashboard({ onStartWorkout }) {
 
         {/* Header */}
         <div className="text-center" style={{ marginBottom: '34px' }}>
-          <p className="text-gray-400 font-medium tracking-wide uppercase" style={{ fontSize: '1.1rem' }}>{dayName}</p>
           <h1 className="font-bold text-gray-900 leading-tight" style={{ fontSize: '2.2rem' }}>{dateStr}</h1>
           <p className="text-gray-500 mt-0.5" style={{ fontSize: '1.1rem' }}>{getGreeting(settings.name)}</p>
         </div>
@@ -207,7 +226,7 @@ export default function Dashboard({ onStartWorkout }) {
         <div className="rounded-3xl overflow-hidden shadow-card">
           {activePhoto ? (
             <div className="relative">
-              <img src={activePhoto.dataUrl} alt="" className="w-full object-cover object-center" style={{ maxHeight: 300 }} />
+              <img src={activePhoto.dataUrl} alt="" className="w-full block" />
               {activePhoto.caption && (
                 <>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />

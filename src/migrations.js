@@ -24,6 +24,7 @@ const MIGRATION_KEY22 = 'maren_migration_v22'
 const MIGRATION_KEY23 = 'maren_migration_v23'
 const MIGRATION_KEY24 = 'maren_migration_v24'
 const MIGRATION_KEY25 = 'maren_migration_v25'
+const MIGRATION_KEY26 = 'maren_migration_v26'
 
 export function runMigrations() {
   runV2()
@@ -50,6 +51,7 @@ export function runMigrations() {
   runV23()
   runV24()
   runV25()
+  runV26()
 }
 
 function runV2() {
@@ -1282,4 +1284,28 @@ function runV25() {
     }
   } catch (e) { /* ignore */ }
   localStorage.setItem(MIGRATION_KEY25, '1')
+}
+
+function runV26() {
+  if (localStorage.getItem(MIGRATION_KEY26)) return
+
+  // Replace all pre-loaded photos with the new set (photos/1.jpg–17.jpg)
+  try {
+    const base = import.meta.env.BASE_URL  // '/gym-app/' in production
+    const raw = localStorage.getItem('maren_photos')
+    const existing = raw ? JSON.parse(raw) : []
+
+    // Remove old preloaded entries; keep any photos the user uploaded themselves
+    const userPhotos = existing.filter(p => !p.id.startsWith('preload_photo_'))
+
+    // Build the 17 new pre-loaded entries
+    const newPhotos = Array.from({ length: 17 }, (_, i) => ({
+      id: `preload_photo_${i + 1}`,
+      dataUrl: `${base}photos/${i + 1}.jpg`,
+    }))
+
+    localStorage.setItem('maren_photos', JSON.stringify([...newPhotos, ...userPhotos]))
+  } catch (e) { /* ignore */ }
+
+  localStorage.setItem(MIGRATION_KEY26, '1')
 }

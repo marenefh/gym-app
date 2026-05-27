@@ -191,7 +191,7 @@ export default function Dashboard({ onStartWorkout }) {
 
   return (
     <div className="h-full overflow-y-auto tab-content bg-cream pb-safe">
-      <div className="px-8 pb-0 safe-top" style={{ paddingTop: '36px' }}>
+      <div className="px-8 pb-0 safe-top" style={{ paddingTop: '22px' }}>
 
         {/* Header */}
         <div className="text-center" style={{ marginBottom: '34px' }}>
